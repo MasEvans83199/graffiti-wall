@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Graffiti Wall</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="ui">
+        <label>Color: 
+            <select id="colorSelector">
+                <option value="#ff0000">Red</option>
+                <option value="#00ff00">Green</option>
+                <option value="#0000ff">Blue</option>
+                <option value="#ffff00">Yellow</option>
+            </select>
+        </label>
+        <label>Paint
+            <select id="patternSelector">
+                <option value="normal">Normal</option>
+                <option value="splatter">Splatter</option>
+                <option value="thin">Thin Line</option>
+            </select>
+        </label>
+        <br>
+        <label>Size: 
+            <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1">
+        </label>
+        <br>
+        <button id="saveButton">Save Artwork</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
