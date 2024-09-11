@@ -4,34 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Graffiti Wall</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+
+        body {
+            font-family: 'Righteous', cursive;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #ui {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 1rem;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .button {
+            background-color: #ff4d4f;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #ff7875;
+        }
+    </style>
 </head>
 <body>
-    <div id="ui">
-        <label>Color: 
-            <select id="colorSelector">
-                <option value="#ff0000">Red</option>
-                <option value="#00ff00">Green</option>
-                <option value="#0000ff">Blue</option>
-                <option value="#ffff00">Yellow</option>
-            </select>
+    <div id="ui" class="p-4 text-white flex flex-col items-center space-y-4 shadow-lg">
+        <label class="flex flex-col items-center">
+            <span class="mb-2">Color</span>
+            <input type="color" id="colorPicker" class="w-16 h-16 border-4 border-gray-600">
         </label>
-        <label>Paint
-            <select id="patternSelector">
+
+        <label class="flex flex-col items-center">
+            <span class="mb-2">Spray Pattern</span>
+            <select id="patternSelector" class="p-2 rounded-lg bg-gray-700 text-white">
                 <option value="normal">Normal</option>
                 <option value="splatter">Splatter</option>
                 <option value="thin">Thin Line</option>
             </select>
         </label>
-        <br>
-        <label>Size: 
-            <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1">
+
+        <label class="flex flex-col items-center">
+            <span class="mb-2">Size</span>
+            <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1" class="w-full">
         </label>
-        <br>
-        <button id="saveButton">Save Artwork</button>
+
+        <div class="flex space-x-4">
+            <button id="saveButton" class="button">Save Artwork</button>
+            <button id="resetButton" class="button">Reset Wall</button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
     <script src="app.js"></script>
 </body>
 </html>

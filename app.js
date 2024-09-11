@@ -20,13 +20,14 @@ function init() {
     scene.add(ambientLight);
 
     const loader = new THREE.TextureLoader();
-    const wallTexture = loader.load('textures/concrete_wall.jpg');
-    const wallMaterial = new THREE.MeshBasicMaterial({ map: wallTexture, side: THREE.DoubleSide });
-    wall = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial);
-    wall.position.set(0, 1, 0);
-    scene.add(wall);
+    const wallTexture = loader.load('textures/concrete_wall.jpg', (texture) => {
+        const wallMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+        wall = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial);
+        wall.position.set(0, 1, 0);
+        scene.add(wall);
+    });
 
-    updatePaintMaterial(document.getElementById('colorSelector').value);
+    updatePaintMaterial(document.getElementById('colorPicker').value);
 
     let painting = false;
     document.addEventListener('mousedown', () => { painting = true; });
@@ -38,7 +39,7 @@ function init() {
         checkIntersect();
     });
     
-    document.getElementById('colorSelector').addEventListener('change', (event) => {
+    document.getElementById('colorPicker').addEventListener('change', (event) => {
         updatePaintMaterial(event.target.value);
     });
 
@@ -67,6 +68,17 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+const colorPicker = new iro.ColorPicker('#colorPicker', {
+    width: 200,
+    color: "#ff0000",
+});
+
+updatePaintMaterial(colorPicker.color.hexString);
+
+colorPicker.on('color:change', function(color) {
+    updatePaintMaterial(color.hexString);
+});
+
 function updatePaintMaterial(color) {
     paintMaterial = new THREE.MeshBasicMaterial({ color: color });
 }
@@ -90,12 +102,12 @@ function checkIntersect() {
 }
 
 function setSprayPattern(pattern) {
-    currentPattern = pattern; // Update the current spray pattern based on user selection
+    currentPattern = pattern; 
 }
 
-// Modified addPaint to handle different patterns
 function addPaint(x, y, z) {
     const color = paintMaterial.color.clone();
+    const paint = new THREE.Mesh(new THREE.CircleGeometry(currentPaintSize, 32), paintMaterial);
     
     switch (currentPattern) {
         case 'splatter':
@@ -104,32 +116,30 @@ function addPaint(x, y, z) {
         case 'thin':
             thinLinePaint(x, y, z, color);
             break;
-        default: // 'normal'
+        default: 
             normalPaint(x, y, z, color);
             break;
     }
 
-    maybeDripPaint();
+    maybeDripPaint(paint);
 }
 
-// Normal spray pattern
 function normalPaint(x, y, z, color) {
     const gradient = new THREE.MeshBasicMaterial({ 
         color: color, 
         transparent: true, 
-        opacity: 0.5 + Math.random() * 0.5 // Random opacity to simulate gradient
+        opacity: 0.5 + Math.random() * 0.5 
     });
     const paint = new THREE.Mesh(new THREE.CircleGeometry(currentPaintSize, 32), gradient);
     paint.position.set(x, y, z);
     scene.add(paint);
 }
 
-// Splatter spray pattern
 function splatterPaint(x, y, z, color) {
-    const numSplats = Math.floor(5 + Math.random() * 10); // Random number of splats
+    const numSplats = Math.floor(5 + Math.random() * 10);
     for (let i = 0; i < numSplats; i++) {
         const splatSize = currentPaintSize * (0.1 + Math.random() * 0.5);
-        const offsetX = (Math.random() - 0.5) * 0.5; // Random position offset
+        const offsetX = (Math.random() - 0.5) * 0.5;
         const offsetY = (Math.random() - 0.5) * 0.5;
         const splatMaterial = new THREE.MeshBasicMaterial({ 
             color: color, 
@@ -142,33 +152,62 @@ function splatterPaint(x, y, z, color) {
     }
 }
 
-// Thin line spray pattern
 function thinLinePaint(x, y, z, color) {
-    const lineMaterial = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 });
-    const paintLine = new THREE.Mesh(new THREE.PlaneGeometry(currentPaintSize * 0.1, currentPaintSize), lineMaterial);
-    paintLine.position.set(x, y, z);
-    scene.add(paintLine);
+    const lineMaterial = new THREE.LineBasicMaterial({
+        color: color, 
+        linewidth: 1
+    });
+
+    const lineGeometry = new THREE.BufferGeometry();
+
+    const positions = new Float32Array([
+        x - currentPaintSize * 0.05, y, z,
+        x + currentPaintSize * 0.05, y + (Math.random() - 0.5) * 0.2, z  
+    ]);
+
+    lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const line = new THREE.Line(lineGeometry, lineMaterial);
+    scene.add(line);
 }
 
 function maybeDripPaint(paint) {
+    if (!paint) {
+        console.warn("No paint object provided for dripping.");
+        return;
+    }
     if (Math.random() < dripProbability) {
-        const drip = new THREE.Mesh(new THREE.CircleGeometry(currentPaintSize * 0.5, 32), paintMaterial);
-        drip.position.set(paint.position.x, paint.position.y - 0.2, paint.position.z);
+        const drip = new THREE.Mesh(
+            new THREE.CylinderGeometry(currentPaintSize * 0.1, currentPaintSize * 0.05, 1, 32),
+            paint.material.clone()
+        );
+        drip.position.set(paint.position.x, paint.position.y - 0.5, paint.position.z);
         scene.add(drip);
-        animateDrip(drip);
     }
 }
 
 function animateDrip(drip) {
-    const dripDistance = 0.5 + Math.random() * 0.5; // Drips can fall between 0.5 to 1 unit
+    const dripDistance = 0.5 + Math.random() * 0.5; 
     let elapsed = 0;
     function step() {
         if (elapsed < dripDistance) {
-            drip.position.y -= 0.01; // Move the drip down by 0.01 units per frame
+            drip.position.y -= 0.01; 
             requestAnimationFrame(step);
         }
     }
     step();
+}
+
+document.getElementById('resetButton').addEventListener('click', resetWall);
+
+function resetWall() {
+    for (let i = scene.children.length - 1; i >= 0; i--) {
+        const object = scene.children[i];
+        if (object !== wall && !(object instanceof THREE.AmbientLight)) {
+            scene.remove(object);
+        }
+    }
+    console.log("Wall reset!");
 }
 
 function saveArtwork() {
