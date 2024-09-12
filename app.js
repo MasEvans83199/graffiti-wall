@@ -20,11 +20,13 @@ function init() {
     scene.add(ambientLight);
 
     const loader = new THREE.TextureLoader();
-    const wallTexture = loader.load('textures/concrete_wall.jpg', (texture) => {
+    loader.load('textures/concrete_wall.jpg', (texture) => {
         const wallMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         wall = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), wallMaterial);
         wall.position.set(0, 1, 0);
         scene.add(wall);
+    }, undefined, (error) => {
+        console.error('An error occurred while loading the texture:', error);
     });
 
     updatePaintMaterial(document.getElementById('colorPicker').value);
