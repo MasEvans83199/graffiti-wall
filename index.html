@@ -5,79 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Graffiti Wall</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        coffee: ['Coffee', 'sans-serif'],
+                        righteous: ['Righteous', 'cursive'],
+                    },
+                    backgroundImage: {
+                        'graffiti-bg': "url('/assets/graffiti-background.png')"
+                    },
+                },
+            },
+        };
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
-
-        body {
-            background-image: url('/assets/graffiti-background.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            font-family: 'Righteous', cursive;
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+        @font-face {
+            font-family: 'Coffee';
+            src: url('/fonts/coffee.otf');
         }
-
-        #ui {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 1rem;
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 1;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .button {
-            background-color: #ff4d4f;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            color: white;
-            font-size: 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #ff7875;
-        }
-        
     </style>
 </head>
-<body>
-    <div id="ui" class="p-4 text-white flex flex-col items-center space-y-4 shadow-lg">
-        <label class="flex flex-col items-center">
-            <span class="mb-2">Color</span>
-            <input type="color" id="colorPicker" class="w-16 h-16 border-4 border-gray-600">
-        </label>
+<body class="bg-graffiti-bg bg-cover bg-center h-screen w-screen font-coffee overflow-hidden">
 
-        <label class="flex flex-col items-center">
-            <span class="mb-2">Spray Pattern</span>
-            <select id="patternSelector" class="p-2 rounded-lg bg-gray-700 text-white">
-                <option value="normal">Normal</option>
-                <option value="splatter">Splatter</option>
-                <option value="thin">Thin Line</option>
-            </select>
-        </label>
+    <!-- UI Container -->
+    <div id="ui" class="bg-transparent bg-opacity-70 p-4 rounded-lg backdrop-blur-md absolute top-5 left-5 text-white">
+        <label for="colorPicker" class="block text-lg">Color:</label>
+        <div id="colorPicker" class="mb-4"></div>
+        
+        <label for="patternSelector" class="block text-base">Paint Pattern:</label>
+        <select id="patternSelector" class="mb-4 pl-2 pt-1 w-full rounded border-gray-300 bg-slate-700 text-white">
+            <option value="normal">Normal</option>
+            <option value="splatter">Splatter</option>
+            <option value="thin">Thin Line</option>
+            <option value="spray">Spray</option>
+            <option value="dotted">Dotted</option>
+            <option value="streak">Streak</option>
+        </select>
+        
+        <label for="sizeSelector" class="block text-base">Size:</label>
+        <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1"
+            class="mb-4 w-full">
 
-        <label class="flex flex-col items-center">
-            <span class="mb-2">Size</span>
-            <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1" class="w-full">
-        </label>
+        <button id="saveButton" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Artwork</button>
 
-        <div class="flex space-x-4">
-            <button id="saveButton" class="button">Save Artwork</button>
-            <button id="resetButton" class="button">Reset Wall</button>
-        </div>
+        <button id="resetButton" class="block bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mt-2 rounded">Reset Wall</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

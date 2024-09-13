@@ -3,8 +3,12 @@ let paintMaterial, currentPaintSize = 0.1;
 let currentPattern = 'normal';
 let dripProbability = 0.005; 
 
+const defaultColor = '#8e44ad';
+const defaultPattern = 'normal';
+
 init();
 animate();
+
 
 function init() {
     renderer = new THREE.WebGLRenderer();
@@ -29,7 +33,21 @@ function init() {
         console.error('An error occurred while loading the texture:', error);
     });
 
-    updatePaintMaterial(document.getElementById('colorPicker').value);
+    const colorPicker = document.getElementById('colorPicker');
+    colorPicker.value = defaultColor;
+
+    const patternSelector = document.getElementById('patternSelector');
+    patternSelector.value = defaultPattern;
+
+    updatePaintMaterial(defaultColor);
+
+    colorPicker.addEventListener('input', (event) => {
+        updatePaintMaterial(event.target.value);
+    });
+
+    patternSelector.addEventListener('change', (event) => {
+        currentPattern = event.target.value;
+    });
 
     let painting = false;
     document.addEventListener('mousedown', () => { painting = true; });
@@ -72,7 +90,7 @@ function animate() {
 
 const colorPicker = new iro.ColorPicker('#colorPicker', {
     width: 200,
-    color: "#ff0000",
+    color: "#8e44ad",
 });
 
 updatePaintMaterial(colorPicker.color.hexString);
@@ -117,6 +135,15 @@ function addPaint(x, y, z) {
             break;
         case 'thin':
             thinLinePaint(x, y, z, color);
+            break;
+        case 'spray':
+            sprayPaint(x, y, z, color);
+            break;
+        case 'dotted':
+            dottedPaint(x, y, z, color);
+            break;
+        case 'streak':
+            streakPaint(x, y, z, color);
             break;
         default: 
             normalPaint(x, y, z, color);
@@ -173,6 +200,58 @@ function thinLinePaint(x, y, z, color) {
     scene.add(line);
 }
 
+function sprayPaint(x, y, z, color) {
+    const numSprays = Math.floor(20 + Math.random() * 30);
+    for (let i = 0; i < numSprays; i++) {
+        const spraySize = currentPaintSize * (0.05 + Math.random() * 0.3);
+        const offsetX = (Math.random() - 0.5) * 1.0;
+        const offsetY = (Math.random() - 0.5) * 1.0;
+        const sprayMaterial = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.3 + Math.random() * 0.7
+        });
+        const spray = new THREE.Mesh(new THREE.CircleGeometry(spraySize, 32), sprayMaterial);
+        spray.position.set(x + offsetX, y + offsetY, z);
+        scene.add(spray);
+    }
+}
+
+function dottedPaint(x, y, z, color) {
+    const numDots = Math.floor(15 + Math.random() * 25);
+    for (let i = 0; i < numDots; i++) {
+        const dotSize = currentPaintSize * (0.02 + Math.random() * 0.1);
+        const offsetX = (Math.random() - 0.5) * 0.8;
+        const offsetY = (Math.random() - 0.5) * 0.8;
+        const dotMaterial = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.5 + Math.random() * 0.5
+        });
+        const dot = new THREE.Mesh(new THREE.CircleGeometry(dotSize, 32), dotMaterial);
+        dot.position.set(x + offsetX, y + offsetY, z);
+        scene.add(dot);
+    }
+}
+
+function streakPaint(x, y, z, color) {
+    const streaks = Math.floor(5 + Math.random() * 10);
+    for (let i = 0; i < streaks; i++) {
+        const streakWidth = currentPaintSize * 0.1;
+        const streakLength = currentPaintSize * (0.2 + Math.random() * 0.5);
+        const streakMaterial = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.5 + Math.random() * 0.5
+        });
+        const streakGeometry = new THREE.PlaneGeometry(streakLength, streakWidth);
+        const streak = new THREE.Mesh(streakGeometry, streakMaterial);
+        streak.position.set(x + (Math.random() - 0.5) * 0.5, y, z);
+        streak.rotation.z = Math.random() * Math.PI;
+        scene.add(streak);
+    }
+}
+
 function maybeDripPaint(paint) {
     if (!paint) {
         console.warn("No paint object provided for dripping.");
@@ -214,14 +293,28 @@ function resetWall() {
 
 function saveArtwork() {
     renderer.render(scene, camera);
+
+    const randomString = Math.random().toString(36).substring(2, 8);
+    const projectName = "TagMaster";
+    const filename = `${projectName}-${randomString}.png`;
+
     const imgData = renderer.domElement.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = imgData;
-    a.download = 'Graffiti-Artwork.png';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
+    window.removeEventListener('beforeunload', warnUser);
 }
+
+function warnUser(e) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+}
+
+window.addEventListener('beforeunload', warnUser);
 
 function onDocumentKeyDown(event) {
     switch(event.keyCode) {
