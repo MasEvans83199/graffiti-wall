@@ -66,28 +66,6 @@ function init() {
         checkIntersect();
     });
 
-    function onTouchStart(event) {
-        painting = true;
-        paint(event.touches[0]);
-    }
-    
-    function onTouchMove(event) {
-        if (painting) {
-            paint(event.touches[0]);
-        }
-    }
-    
-    function onTouchEnd() {
-        painting = false;
-    }
-    
-    function paint(touch) {
-        const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
-        checkIntersect();
-    }
-
     const toggleUI = document.getElementById('toggleUI');
     const ui = document.getElementById('ui');
     toggleUI.addEventListener('click', () => {
@@ -112,6 +90,8 @@ function init() {
     window.addEventListener('orientationchange', onWindowResize, false);
 
     document.getElementById('saveButton').addEventListener('click', saveArtwork);
+
+    addTouchListeners();
 }
 
 function onWindowResize() {
@@ -346,6 +326,37 @@ function saveArtwork() {
 
 const cursor = document.getElementById('neon-cursor');
 const ui = document.getElementById('ui');
+
+function addTouchListeners() {
+    renderer.domElement.addEventListener('touchstart', onTouchStart, false);
+    renderer.domElement.addEventListener('touchmove', onTouchMove, false);
+    renderer.domElement.addEventListener('touchend', onTouchEnd, false);
+}
+
+function onTouchStart(event) {
+    event.preventDefault();
+    painting = true;
+    paint(event.touches[0]);
+}
+
+function onTouchMove(event) {
+    event.preventDefault();
+    if (painting) {
+        paint(event.touches[0]);
+    }
+}
+
+function onTouchEnd(event) {
+    event.preventDefault();
+    painting = false;
+}
+
+function paint(touch) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+    checkIntersect();
+}
 
 function updateCursorPosition(x, y) {
     if ('ontouchstart' in window) {
