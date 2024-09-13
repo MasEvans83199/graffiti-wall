@@ -98,6 +98,15 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    
+    // Adjust wall position for better mobile viewing
+    if (window.innerWidth < window.innerHeight) {
+        wall.position.set(0, 0, 0);
+        camera.position.z = 7;
+    } else {
+        wall.position.set(0, 1, 0);
+        camera.position.z = 5;
+    }
 }
 
 function animate() {
@@ -122,6 +131,33 @@ function updatePaintMaterial(color) {
 
 const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
+let painting = false;
+
+function onTouchStart(event) {
+    event.preventDefault();
+    painting = true;
+    updateTouchPosition(event.touches[0]);
+    checkIntersect();
+}
+
+function onTouchMove(event) {
+    event.preventDefault();
+    if (painting) {
+        updateTouchPosition(event.touches[0]);
+        checkIntersect();
+    }
+}
+
+function onTouchEnd(event) {
+    event.preventDefault();
+    painting = false;
+}
+
+function updateTouchPosition(touch) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+}
 
 function onMouseMove(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -328,27 +364,9 @@ const cursor = document.getElementById('neon-cursor');
 const ui = document.getElementById('ui');
 
 function addTouchListeners() {
-    renderer.domElement.addEventListener('touchstart', onTouchStart, false);
-    renderer.domElement.addEventListener('touchmove', onTouchMove, false);
-    renderer.domElement.addEventListener('touchend', onTouchEnd, false);
-}
-
-function onTouchStart(event) {
-    event.preventDefault();
-    painting = true;
-    paint(event.touches[0]);
-}
-
-function onTouchMove(event) {
-    event.preventDefault();
-    if (painting) {
-        paint(event.touches[0]);
-    }
-}
-
-function onTouchEnd(event) {
-    event.preventDefault();
-    painting = false;
+    document.addEventListener('touchstart', onTouchStart, { passive: false });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
 }
 
 function paint(touch) {
