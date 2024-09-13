@@ -11,7 +11,13 @@
                 extend: {
                     fontFamily: {
                         coffee: ['Coffee', 'sans-serif'],
-                        righteous: ['Righteous', 'cursive'],
+                    },
+                    colors: {
+                        neon: {
+                            green: '#39FF14',
+                            pink: '#FF10F0',
+                            blue: '#4D4DFF',
+                        },
                     },
                     backgroundImage: {
                         'graffiti-bg': "url('/assets/graffiti-background.png')"
@@ -26,33 +32,62 @@
             font-family: 'Coffee';
             src: url('/fonts/coffee.otf');
         }
+        @keyframes neonPulse {
+            0% { box-shadow: 0 0 5px #39FF14, 0 0 10px #39FF14, 0 0 15px #39FF14, 0 0 20px #39FF14; }
+            50% { box-shadow: 0 0 10px #39FF14, 0 0 20px #39FF14, 0 0 30px #39FF14, 0 0 40px #39FF14; }
+            100% { box-shadow: 0 0 5px #39FF14, 0 0 10px #39FF14, 0 0 15px #39FF14, 0 0 20px #39FF14; }
+        }
+        .neon-border {
+            animation: neonPulse 1.5s infinite alternate;
+        }
+        #neon-cursor {
+            transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease;
+        }
     </style>
 </head>
-<body class="bg-graffiti-bg bg-cover bg-center h-screen w-screen font-coffee overflow-hidden">
-
-    <!-- UI Container -->
-    <div id="ui" class="bg-transparent bg-opacity-70 p-4 rounded-lg backdrop-blur-md absolute top-5 left-5 text-white">
-        <label for="colorPicker" class="block text-lg">Color:</label>
-        <div id="colorPicker" class="mb-4"></div>
-        
-        <label for="patternSelector" class="block text-base">Paint Pattern:</label>
-        <select id="patternSelector" class="mb-4 pl-2 pt-1 w-full rounded border-gray-300 bg-slate-700 text-white">
-            <option value="normal">Normal</option>
-            <option value="splatter">Splatter</option>
-            <option value="thin">Thin Line</option>
-            <option value="spray">Spray</option>
-            <option value="dotted">Dotted</option>
-            <option value="streak">Streak</option>
-        </select>
-        
-        <label for="sizeSelector" class="block text-base">Size:</label>
-        <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1"
-            class="mb-4 w-full">
-
-        <button id="saveButton" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save Artwork</button>
-
-        <button id="resetButton" class="block bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 mt-2 rounded">Reset Wall</button>
+<body class="bg-graffiti-bg bg-cover bg-center bg-no-repeat min-h-screen overflow-hidden font-coffee text-white cursor-none">
+    <div id="neon-cursor" class="w-5 h-5 rounded-full bg-neon-green fixed pointer-events-none mix-blend-screen z-50"></div>
+    <button id="toggleUI" class="fixed lg:invisible top-4 right-4 bg-zinc-800 text-neon-green font-bold py-2 px-4 rounded-md border border-neon-green z-50">
+        Toggle UI
+    </button>
+    
+    <div id="ui" class="fixed top-0 left-0 w-full h-full bg-zinc-900 bg-opacity-80 p-6 overflow-y-auto transform transition-transform duration-300 translate-x-0 md:translate-x-0 md:w-auto md:h-auto md:top-4 md:left-4 md:rounded-xl neon-border md:max-w-sm cursor-pointer">
+        <h1 class="text-5xl font-bold mb-6 text-center text-neon-green transform skew-x-2 rotate-2">TagMaster</h1>
+        <div class="space-y-6">
+            <div>
+                <label for="colorPicker" class="block text-lg mb-2">Color:</label>
+                <div id="colorPicker" class="w-full h-full rounded-md overflow-hidden"></div>
+            </div>
+            
+            <div>
+                <label for="patternSelector" class="block text-lg mb-2 text-neon-pink">Paint Pattern:</label>
+                <select id="patternSelector" class="w-full bg-zinc-800 text-white py-2 px-3 rounded-md border border-neon-pink focus:outline-none focus:ring-2 focus:ring-neon-pink shadow-[0_0_10px_rgba(255,16,240,0.7)]">
+                    <option value="normal">Normal</option>
+                    <option value="splatter">Splatter</option>
+                    <option value="thin">Thin Line</option>
+                    <option value="spray">Spray</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="streak">Streak</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="sizeSelector" class="block text-lg mb-2">Brush Size:</label>
+                <input type="range" id="sizeSelector" min="0.05" max="0.5" step="0.01" value="0.1"
+                    class="w-full accent-neon-pink">
+            </div>
+            
+            <div class="flex space-x-4">
+                <button id="saveButton" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-neon-green font-bold py-2 px-4 rounded-md border border-neon-green hover:shadow-[0_0_10px_rgba(57,255,20,0.7)] transition duration-300">
+                    Save Artwork
+                </button>
+                <button id="resetButton" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-neon-pink font-bold py-2 px-4 rounded-md border border-neon-pink hover:shadow-[0_0_10px_rgba(255,16,240,0.7)] transition duration-300">
+                    Reset Wall
+                </button>
+            </div>            
+        </div>
     </div>
+    <canvas id="canvas" class="fixed top-0 left-0 w-full h-full z-0"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>

@@ -1,8 +1,9 @@
 let scene, camera, renderer, wall;
 let paintMaterial, currentPaintSize = 0.1;
 let currentPattern = 'normal';
-let dripProbability = 0.005; 
+let dripProbability = 0.02; 
 
+const isMobile = window.innerWidth < 768;
 const defaultColor = '#8e44ad';
 const defaultPattern = 'normal';
 
@@ -11,14 +12,20 @@ animate();
 
 
 function init() {
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setClearColor(0x000000, 0);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1, 5);
+    if (isMobile) {
+        camera.position.set(0, 2, 10)
+    }
+    else{
+        camera.position.set(-0.5, 1, 5);
+    }
 
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
@@ -58,6 +65,34 @@ function init() {
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         checkIntersect();
     });
+
+    function onTouchStart(event) {
+        painting = true;
+        paint(event.touches[0]);
+    }
+    
+    function onTouchMove(event) {
+        if (painting) {
+            paint(event.touches[0]);
+        }
+    }
+    
+    function onTouchEnd() {
+        painting = false;
+    }
+    
+    function paint(touch) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+        checkIntersect();
+    }
+
+    const toggleUI = document.getElementById('toggleUI');
+    const ui = document.getElementById('ui');
+    toggleUI.addEventListener('click', () => {
+        ui.classList.toggle('-translate-x-full');
+    });
     
     document.getElementById('colorPicker').addEventListener('change', (event) => {
         updatePaintMaterial(event.target.value);
@@ -73,6 +108,8 @@ function init() {
     });
 
     window.addEventListener('resize', onWindowResize, false);
+
+    window.addEventListener('orientationchange', onWindowResize, false);
 
     document.getElementById('saveButton').addEventListener('click', saveArtwork);
 }
@@ -293,21 +330,73 @@ function resetWall() {
 
 function saveArtwork() {
     renderer.render(scene, camera);
-
-    const randomString = Math.random().toString(36).substring(2, 8);
-    const projectName = "TagMaster";
-    const filename = `${projectName}-${randomString}.png`;
-
     const imgData = renderer.domElement.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = imgData;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    window.removeEventListener('beforeunload', warnUser);
+    
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        window.open(imgData, '_blank');
+    } else {
+        const a = document.createElement('a');
+        a.href = imgData;
+        a.download = `TagMaster-${Math.random().toString(36).substring(2, 8)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
 }
+
+const cursor = document.getElementById('neon-cursor');
+const ui = document.getElementById('ui');
+
+function updateCursorPosition(x, y) {
+    if ('ontouchstart' in window) {
+        cursor.style.display = 'none';
+    } else {
+        cursor.style.display = 'block';
+        cursor.style.left = `${x}px`;
+        cursor.style.top = `${y}px`;
+    }
+}
+
+document.addEventListener('mousemove', (e) => {
+    updateCursorPosition(e.clientX, e.clientY);
+    const cursorSize = parseFloat(getComputedStyle(cursor).width);
+    cursor.style.left = `${e.clientX - cursorSize / 2}px`;
+    cursor.style.top = `${e.clientY - cursorSize / 2}px`;
+});
+
+document.addEventListener('touchmove', (e) => {
+    updateCursorPosition(e.touches[0].clientX, e.touches[0].clientY);
+});
+
+document.addEventListener('mousedown', () => {
+    cursor.style.transform = 'scale(0.8)';
+});
+
+document.addEventListener('mouseup', () => {
+    cursor.style.transform = 'scale(1)';
+});
+
+ui.addEventListener('mouseenter', () => {
+    cursor.style.opacity = '0';
+});
+
+ui.addEventListener('mouseleave', () => {
+    cursor.style.opacity = '1';
+});
+
+function updateCursorSize(size) {
+    const newSize = size * 200;
+    cursor.style.width = `${newSize}px`;
+    cursor.style.height = `${newSize}px`;
+}
+
+document.getElementById('sizeSelector').addEventListener('input', (event) => {
+    currentPaintSize = parseFloat(event.target.value);
+    updateCursorSize(currentPaintSize);
+});
+
+updateCursorSize(currentPaintSize);
+
 
 function warnUser(e) {
     e.preventDefault();
