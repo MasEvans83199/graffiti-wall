@@ -98,8 +98,7 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    
-    // Adjust wall position for better mobile viewing
+
     if (window.innerWidth < window.innerHeight) {
         wall.position.set(0, 0, 0);
         camera.position.z = 7;
